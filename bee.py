@@ -19,6 +19,14 @@ class Bee(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.direction = pygame.Vector2((0,0))
         self.speed = 200
+        self.pollen_count = 5
+        self.shoot_ability = True
+
+    def shooting(self):
+        if self.pollen_count <= 0:
+            self.shoot_ability = False
+        else:
+            self.shoot_ability = True
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
@@ -31,8 +39,12 @@ class Bee(pygame.sprite.Sprite):
         self.rect.center += self.direction * self.speed * dt
 
         recent_keys = pygame.key.get_just_pressed()
-        if recent_keys[pygame.K_SPACE]:
-            Pollen(pollen_surf, self.rect.midtop, (all_sprites, pollen_sprites))
+        if recent_keys[pygame.K_SPACE] and self.shoot_ability == True:
+            Pollen(pollen_surf, bee.rect.midtop, (all_sprites, pollen_sprites))
+            if bee.pollen_count > 0:
+                bee.pollen_count -=1
+        self.shooting()
+        collisions()
 
 class Pollen(pygame.sprite.Sprite):
     def __init__(self, surf, pos, groups):
@@ -69,9 +81,10 @@ class Seeds(pygame.sprite.Sprite):
         if self.rect.top > WINDOW_X_Y:
             self.kill()
         
-
 def collisions():
     collision_bee_honey = pygame.sprite.spritecollide(bee, honey_sprites, True, pygame.sprite.collide_mask)
+    if collision_bee_honey:
+        bee.pollen_count += 1
     for pollen in pollen_sprites:
         collision_pollen_seed = pygame.sprite.spritecollide(pollen, seeds_sprites, True, pygame.sprite.collide_mask)
         if collision_pollen_seed:
