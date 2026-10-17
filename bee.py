@@ -113,6 +113,12 @@ def collisions():
             pollen.kill()
             Flower(flower_surf, pollen.rect.midtop, (all_sprites, flower_sprites))
 
+def charge_amount():
+    text_surf_pollen = pygame.font.Font.render(font, f"Pollen  {bee.pollen_count}", False, (240,240,240))
+    #text_surf_flower = pygame.font.Font.render(font, f"Flowers  {len(flower_sprites)}", False, (240,240,240))
+    display_surface.blit(text_surf_pollen, (5,0))
+    #display_surface.blit(text_surf_flower, (5, 30))
+
 # sprite groups
 all_sprites = pygame.sprite.Group()
 honey_sprites = pygame.sprite.Group()
@@ -126,6 +132,7 @@ pollen_surf = pygame.image.load(join('images', 'pollen.png')).convert_alpha()
 flower_surf = pygame.image.load(join ('images', 'flower.png')).convert_alpha()
 honey_surf = pygame.image.load(join ('images', 'honey.png')).convert_alpha()
 seeds_surf = pygame.image.load(join ('images', 'seeds.png')).convert_alpha()
+font = pygame.font.Font(join('images', 'ARCADECLASSIC.TTF'), 20)
 
 # custom events
 honey_event = pygame.event.custom_type()
@@ -149,6 +156,7 @@ while running:
     all_sprites.update(dt)
     all_sprites.draw(display_surface)
     collisions()
+    charge_amount()
     pygame.display.update()
 
 pygame.quit()
