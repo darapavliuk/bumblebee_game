@@ -12,15 +12,18 @@ clock = pygame.time.Clock()
 running = True
 
 class Bee(pygame.sprite.Sprite):
-    def __init__(self, groups):
+    def __init__(self, groups, flower_sprites):
         super().__init__(groups)
         self.image = pygame.image.load(join('images', 'bee48.png')).convert_alpha()
         self.rect = self.image.get_frect(center = (WINDOW_X_Y/2, WINDOW_X_Y/2))
+        self.hitbox_rect = self.rect.inflate(-5,-5)
         self.mask = pygame.mask.from_surface(self.image)
+        # movement
         self.direction = pygame.Vector2((0,0))
         self.speed = 200
         self.pollen_count = 5
         self.shoot_ability = True
+        self.flower_sprites = flower_sprites
 
     def shooting(self):
         if self.pollen_count <= 0:
@@ -28,7 +31,7 @@ class Bee(pygame.sprite.Sprite):
         else:
             self.shoot_ability = True
 
-    def update(self, dt):
+    def input(self):
         keys = pygame.key.get_pressed()
         self.direction.x = keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]
         self.direction.y = keys[pygame.K_DOWN] - keys[pygame.K_UP]
@@ -36,14 +39,33 @@ class Bee(pygame.sprite.Sprite):
             self.direction.normalize()
         else:
             self.direction
-        self.rect.center += self.direction * self.speed * dt
 
+    def move(self, dt):
+        self.hitbox_rect.x += self.direction.x * self.speed * dt
+        self.collide('horizontal')
+        self.hitbox_rect.y += self.direction.y * self.speed * dt
+        self.collide('vertical')
+        self.rect.center = self.hitbox_rect.center
+
+    def collide(self, direction):
+        for flower in self.flower_sprites:
+            if flower.rect.colliderect(self.hitbox_rect):
+                if direction == 'horizontal':
+                    if self.direction.x > 0: self.hitbox_rect.right = flower.rect.left
+                    if self.direction.x < 0: self.hitbox_rect.left = flower.rect.right
+                else:
+                    if self.direction.y > 0: self.hitbox_rect.bottom = flower.rect.top                  
+                    if self.direction.y < 0: self.hitbox_rect.top = flower.rect.bottom
+
+    def update(self, dt):
         recent_keys = pygame.key.get_just_pressed()
         if recent_keys[pygame.K_SPACE] and self.shoot_ability == True:
             Pollen(pollen_surf, bee.rect.midtop, (all_sprites, pollen_sprites))
             if bee.pollen_count > 0:
                 bee.pollen_count -=1
         self.shooting()
+        self.input()
+        self.move(dt)
         collisions()
 
 class Pollen(pygame.sprite.Sprite):
@@ -97,7 +119,7 @@ honey_sprites = pygame.sprite.Group()
 pollen_sprites = pygame.sprite.Group()
 flower_sprites = pygame.sprite.Group()
 seeds_sprites = pygame.sprite.Group()
-bee = Bee(all_sprites)
+bee = Bee(all_sprites, flower_sprites)
 
 # imports
 pollen_surf = pygame.image.load(join('images', 'pollen.png')).convert_alpha()
